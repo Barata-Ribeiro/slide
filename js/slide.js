@@ -7,14 +7,6 @@ export default class Slide {
         this.dist = { finalPosition: 0, startX: 0, movement: 0 };
     }
 
-    onStart(event) {
-        event.preventDefault();
-        // Armazena a posição inicial do mouse
-        this.dist.startX = event.clientX;
-        // Adiciona o eventListener 'mousemove' ao 'wrapper' e chama a função onMove quando ocorrer
-        this.wrapper.addEventListener('mousemove', this.onMove);
-    }
-
     moveSlide(distX) {
         // Atualiza a posição do movimento
         this.dist.movePosition = distX;
@@ -31,16 +23,39 @@ export default class Slide {
         return this.dist.finalPosition - this.dist.movement;
     }
 
+    onStart(event) {
+        let movetype;
+        // Verifica se o evento é do tipo'mousedown' ou 'touchmove'
+        if (event.type === 'mousedown') {
+            event.preventDefault();
+            // Armazena a posição inicial do mouse
+            this.dist.startX = event.clientX;
+            // Seta o tipo do movimento para 'mousemove'
+            movetype = 'mousemove';
+        } else {
+            // Armazena a posição inicial do touch, do primeiro dedo
+            this.dist.startX = event.changedTouches[0].clientX;
+            // Seta o tipo do movimento para 'touchmove'
+            movetype = 'touchmove';
+        }
+        // Adiciona o eventListener 'mousemove' ao 'wrapper' e chama a função onMove quando ocorrer
+        this.wrapper.addEventListener(movetype, this.onMove);
+    }
+
     onMove(event) {
+        // Verifica o tipo do evento e seta a posição final atualizada do slide de acordo com o tipo
+        const pointerPosition = event.type === 'mousemove' ? event.clientX : event.changedTouches[0].clientX;
         // Obtém a posição final atualizada do slide
-        const finalPosition = this.updatePosition(event.clientX);
+        const finalPosition = this.updatePosition(pointerPosition);
         // Move o slide para a nova posição
         this.moveSlide(finalPosition);
     }
 
     onEnd(event) {
+        // Verifica se o evento e remove o evento de acordo com o tipo
+        const moveType = event.type === 'mouseup' ? 'mousemove' : 'touchmove';
         // Remove o eventListener 'mousemove' do 'wrapper' para parar de mover o slide
-        this.wrapper.removeEventListener('mousemove', this.onMove);
+        this.wrapper.removeEventListener(moveType, this.onMove);
         // Atualiza a posição final do slide
         this.dist.finalPosition = this.dist.movePosition;
     }
@@ -51,6 +66,9 @@ export default class Slide {
         // mousedown e mouseup respectivamente.
         this.wrapper.addEventListener('mousedown', this.onStart);
         this.wrapper.addEventListener('mouseup', this.onEnd);
+        // Adiciona os mesmos eventos para 'touch'
+        this.wrapper.addEventListener('touchstart', this.onStart);
+        this.wrapper.addEventListener('touchend', this.onEnd);
     }
 
     bindEvents() {
