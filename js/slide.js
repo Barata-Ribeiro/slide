@@ -7,6 +7,11 @@ export default class Slide {
         this.dist = { finalPosition: 0, startX: 0, movement: 0 };
     }
 
+    transition(active) {
+        // Define a transição CSS para o slide com base no valor de 'active'
+        this.slide.style.transition = active ? 'transform .3s' : '';
+    }
+
     moveSlide(distX) {
         // Atualiza a posição do movimento
         this.dist.movePosition = distX;
@@ -40,6 +45,7 @@ export default class Slide {
         }
         // Adiciona o eventListener 'mousemove' ao 'wrapper' e chama a função onMove quando ocorrer
         this.wrapper.addEventListener(movetype, this.onMove);
+        this.transition(false);
     }
 
     onMove(event) {
@@ -58,6 +64,19 @@ export default class Slide {
         this.wrapper.removeEventListener(moveType, this.onMove);
         // Atualiza a posição final do slide
         this.dist.finalPosition = this.dist.movePosition;
+        this.transition(true);
+        this.changeSlideOnEnd();
+    }
+
+    changeSlideOnEnd() {
+        // Verifica se deve mudar de slide com base no movimento final e nos índices do slide
+        if (this.dist.movement > 120 && this.index.next !== undefined) {
+            this.activeNextSlide();
+        } else if (this.dist.movement < -120 && this.index.prev !== undefined) {
+            this.activePrevSlide();
+        } else {
+            this.changeSlide(this.index.active);
+        }
     }
 
     addSlideEvents() {
@@ -114,8 +133,21 @@ export default class Slide {
         this.dist.finalPosition = activeSlide.position;
     }
 
+    // slide nav
+
+    activePrevSlide() {
+        // Ativa o slide anterior
+        if (this.index.prev !== undefined) this.changeSlide(this.index.prev);
+    }
+
+    activeNextSlide() {
+        // Ativa o próximo slide
+        if (this.index.next !== undefined) this.changeSlide(this.index.next);
+    }
+
     init() {
         this.bindEvents();
+        this.transition(true);
         this.addSlideEvents();
         this.slidesConfig();
         // Retorna a instância do objeto Slide para possibilitar a encadeação de métodos
