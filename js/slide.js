@@ -78,9 +78,46 @@ export default class Slide {
         this.onEnd = this.onEnd.bind(this);
     }
 
+    // Slides config
+
+    slidePosition(slide) {
+        // Calcula a posição do slide com base na margem e no tamanho do wrapper
+        const margin = this.wrapper.offsetWidth - slide.offsetWidth / 2;
+        return -(slide.offsetLeft - margin);
+    }
+
+    slidesConfig() {
+        // Mapeia os elementos dos slides para obter suas posições iniciais
+        this.slideArray = [...this.slide.children].map((element) => {
+            const position = this.slidePosition(element);
+            return { element, position };
+        });
+    }
+
+    slidesIndexNav(index) {
+        // Configura os índices do slide anterior, ativo e próximo
+        const last = this.slideArray.length - 1;
+        this.index = {
+            prev: index ? index - 1 : undefined,
+            active: index,
+            next: index === last ? undefined : index + 1,
+        };
+    }
+
+    changeSlide(index) {
+        // Move o slide para a posição do slide ativo
+        const activeSlide = this.slideArray[index];
+        this.moveSlide(activeSlide.position);
+        // Atualiza os índices do slide
+        this.slidesIndexNav(index);
+        // Atualiza a posição final do slide
+        this.dist.finalPosition = activeSlide.position;
+    }
+
     init() {
         this.bindEvents();
         this.addSlideEvents();
+        this.slidesConfig();
         // Retorna a instância do objeto Slide para possibilitar a encadeação de métodos
         return this;
     }
