@@ -81,11 +81,13 @@ export default class Slide {
     // Slides config
 
     slidePosition(slide) {
+        // Calcula a posição do slide com base na margem e no tamanho do wrapper
         const margin = this.wrapper.offsetWidth - slide.offsetWidth / 2;
         return -(slide.offsetLeft - margin);
     }
 
     slidesConfig() {
+        // Mapeia os elementos dos slides para obter suas posições iniciais
         this.slideArray = [...this.slide.children].map((element) => {
             const position = this.slidePosition(element);
             return { element, position };
@@ -93,6 +95,7 @@ export default class Slide {
     }
 
     slidesIndexNav(index) {
+        // Configura os índices do slide anterior, ativo e próximo
         const last = this.slideArray.length - 1;
         this.index = {
             prev: index ? index - 1 : undefined,
@@ -102,9 +105,12 @@ export default class Slide {
     }
 
     changeSlide(index) {
+        // Move o slide para a posição do slide ativo
         const activeSlide = this.slideArray[index];
         this.moveSlide(activeSlide.position);
+        // Atualiza os índices do slide
         this.slidesIndexNav(index);
+        // Atualiza a posição final do slide
         this.dist.finalPosition = activeSlide.position;
     }
 
