@@ -9,6 +9,8 @@ export class Slide {
     this.dist = { finalPosition: 0, startX: 0, movement: 0 };
     // Classe CSS para o slide ativo
     this.activeClass = "active";
+    // Adiciona um novo evento para o slide para atualizar as posições
+    this.changeEvent = new Event("changeEvent");
   }
 
   transition(active) {
@@ -94,7 +96,9 @@ export class Slide {
     // quanto do touch, para realizar a mudança de slide.
     this.wrapper.addEventListener("mousedown", this.onStart);
     this.wrapper.addEventListener("mouseup", this.onEnd);
-    this.wrapper.addEventListener("touchstart", this.onStart);
+    this.wrapper.addEventListener("touchstart", this.onStart, {
+      passive: true,
+    });
     this.wrapper.addEventListener("touchend", this.onEnd);
   }
 
@@ -134,6 +138,8 @@ export class Slide {
     this.dist.finalPosition = activeSlide.position;
     // Atualiza a classe ativa para o slide correspondente
     this.changeActiveClass();
+    // Vai emitir o evento 'changeEvent'
+    this.wrapper.dispatchEvent(this.changeEvent);
   }
 
   changeActiveClass() {
@@ -197,6 +203,11 @@ export class Slide {
 }
 
 export class SlideNav extends Slide {
+  constructor(...args) {
+    super(...args);
+    this.bindControlEvents();
+  }
+  // Adiciona os botões de prev e next ao slide
   addArrow(prev, next) {
     this.prevElement = document.querySelector(prev);
     this.nextElement = document.querySelector(next);
@@ -206,5 +217,50 @@ export class SlideNav extends Slide {
   addArrowEvent() {
     this.prevElement.addEventListener("click", this.activePrevSlide);
     this.nextElement.addEventListener("click", this.activeNextSlide);
+  }
+
+  // Cria os controles de bolinha do slide
+  createControl() {
+    const control = document.createElement("ul");
+    control.dataset.control = "slide";
+    this.slideArray.forEach((slide, index) => {
+      control.innerHTML += `
+      <li><a href="#slide${index + 1}">${index + 1}</a></li>`;
+    });
+    this.wrapper.appendChild(control);
+    return control;
+  }
+
+  // Adiciona evento ao item do controle
+  eventControl(item, index) {
+    item.addEventListener("click", (event) => {
+      event.preventDefault();
+      this.changeSlide(index);
+    });
+    this.wrapper.addEventListener("changeEvent", this.activeControlItem);
+  }
+
+  // Ativa o item do controle correspondente ao slide atual
+  activeControlItem() {
+    this.controlArray.forEach((item) =>
+      item.classList.remove(this.activeClass)
+    );
+    this.controlArray[this.index.active].classList.add(this.activeClass);
+  }
+
+  // Adiciona controles de slide personalizados ou cria controles padrão
+  addControl(customControl) {
+    this.control =
+      document.querySelector(customControl) || this.createControl();
+    this.controlArray = [...this.control.children];
+    // 'Ativa' o controle logo que abrir a pagina
+    this.activeControlItem();
+    this.controlArray.forEach(this.eventControl);
+  }
+
+  // Liga o contexto do evento ao objeto atual
+  bindControlEvents() {
+    this.eventControl = this.eventControl.bind(this);
+    this.activeControlItem = this.activeControlItem.bind(this);
   }
 }
